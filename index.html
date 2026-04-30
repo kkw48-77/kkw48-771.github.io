@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Liquidity Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* CSS Variables for Light & Dark Mode */
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --asset-green: #2ecc71;
+            --liability-red: #e74c3c;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --border-color: #dcdde1;
+            --input-bg: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-main: #ecf0f1;
+            --text-muted: #bdc3c7;
+            --border-color: #34495e;
+            --input-bg: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .calculator-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 550px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+        }
+
+        /* Dark Mode Button */
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 { font-size: 1.6rem; color: var(--text-main); }
+        .header p { font-size: 0.95rem; color: var(--text-muted); margin-top: 5px; }
+
+        /* Chart Container */
+        .chart-container {
+            width: 100%;
+            max-width: 250px;
+            margin: 0 auto 30px auto;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .asset-title { color: var(--asset-green); border-color: var(--asset-green); }
+        .liability-title { color: var(--liability-red); border-color: var(--liability-red); }
+
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .label-container { display: flex; align-items: center; gap: 10px; }
+        .input-group label { font-weight: 600; font-size: 0.95rem; }
+
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .add-btn { background-color: var(--text-muted); }
+        .remove-btn { background-color: var(--liability-red); }
+
+        .input-wrapper { position: relative; width: 160px; }
+        .input-wrapper span {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); font-weight: 600;
+        }
+        .input-wrapper input {
+            width: 100%; padding: 10px 10px 10px 28px;
+            border: 2px solid var(--border-color); border-radius: 8px;
+            font-size: 1rem; font-weight: 600; outline: none;
+            background-color: var(--input-bg); color: var(--text-main);
+        }
+        .input-wrapper input:focus { border-color: var(--text-main); }
+
+        .totals-box {
+            background-color: var(--bg-color); padding: 20px;
+            border-radius: 12px; margin-top: 35px;
+        }
+
+        .total-row {
+            display: flex; justify-content: space-between; margin-bottom: 12px;
+            font-size: 1.05rem; font-weight: 600; color: var(--text-main);
+        }
+
+        .net-row {
+            display: flex; justify-content: space-between; margin-top: 15px;
+            padding-top: 15px; border-top: 2px solid var(--border-color);
+            font-size: 1.3rem; font-weight: 800;
+        }
+
+        .positive-net { color: var(--asset-green); }
+        .negative-net { color: var(--liability-red); }
+
+        .action-buttons {
+            display: flex; justify-content: space-between; margin-top: 20px; gap: 10px;
+        }
+        .action-btn {
+            flex: 1; padding: 12px; border: none; border-radius: 8px;
+            font-weight: bold; font-size: 1rem; cursor: pointer; transition: opacity 0.2s;
+        }
+        .action-btn:hover { opacity: 0.8; }
+        .print-btn { background-color: var(--text-main); color: var(--card-bg); }
+        .clear-btn { background-color: transparent; border: 2px solid var(--liability-red); color: var(--liability-red); }
+
+        /* Print formatting: Hides buttons and makes it look like a clean document */
+        @media print {
+            body { background-color: white; color: black; padding: 0; }
+            .calculator-container { box-shadow: none; border: none; max-width: 100%; padding: 0; }
+            .theme-toggle, .icon-btn, .action-buttons { display: none !important; }
+            input { border: none; background: transparent; text-align: right; }
+            .input-wrapper span { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <button class="theme-toggle" id="theme-btn">🌙</button>
+
+        <div class="header">
+            <h1>Liquidity Dashboard</h1>
+            <p>Track your monthly cash vs. debt</p>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="liquidityChart"></canvas>
+        </div>
+
+        <h2 class="section-title asset-title">Current Assets</h2>
+        <div class="input-group">
+            <div class="label-container"><label>Physical Cash</label></div>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" id="cash-input" class="asset-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="label-container"><label>Checking Account</label></div>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" id="checking-input" class="asset-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+        <div class="input-group">
+            <div class="label-container"><label>Savings Account</label></div>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" id="savings-input" class="asset-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+
+        <h2 class="section-title liability-title" style="margin-top: 30px;">Current Liabilities</h2>
+        
+        <div id="credit-cards-container">
+            <div class="input-group">
+                <div class="label-container">
+                    <label>Credit Card 1</label>
+                    <button id="add-cc-btn" class="icon-btn add-btn">+</button>
+                </div>
+                <div class="input-wrapper">
+                    <span>$</span>
+                    <input type="number" id="cc-1" class="liability-input cc-input" placeholder="0.00" min="0">
+                </div>
+            </div>
+        </div>
+
+        <div class="input-group">
+            <div class="label-container"><label>Short-Term Bills Due</label></div>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" id="bills-input" class="liability-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+
+        <div class="totals-box">
+            <div class="total-row">
+                <span>Total Assets:</span>
+                <span id="display-assets">$0.00</span>
+            </div>
+            <div class="total-row">
+                <span>Total Liabilities:</span>
+                <span id="display-liabilities">$0.00</span>
+            </div>
+            <div class="total-row">
+                <span>Current Ratio:</span>
+                <span id="display-ratio">0.00</span>
+            </div>
+            <div class="net-row">
+                <span>Net Liquid Assets:</span>
+                <span id="display-net" class="positive-net">$0.00</span>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="action-btn clear-btn" id="clear-btn">Clear All</button>
+            <button class="action-btn print-btn" id="print-btn">Print Report</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const displayAssets = document.getElementById('display-assets');
+        const displayLiabilities = document.getElementById('display-liabilities');
+        const displayNet = document.getElementById('display-net');
+        const displayRatio = document.getElementById('display-ratio');
+        const ccContainer = document.getElementById('credit-cards-container');
+        const addCcBtn = document.getElementById('add-cc-btn');
+        const themeBtn = document.getElementById('theme-btn');
+        const clearBtn = document.getElementById('clear-btn');
+        const printBtn = document.getElementById('print-btn');
+        
+        let ccCount = 1;
+        let myChart; // Variable to hold our chart
+
+        const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
+        // --- CHART SETUP ---
+        const initChart = () => {
+            const ctx = document.getElementById('liquidityChart').getContext('2d');
+            myChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Assets', 'Liabilities'],
+                    datasets: [{
+                        data: [1, 1], // Start with dummy data so it shows a circle
+                        backgroundColor: ['#2ecc71', '#e74c3c'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        };
+
+        // --- MAIN MATH & UI FUNCTION ---
+        const calculateTotals = () => {
+            const assetInputs = document.querySelectorAll('.asset-input');
+            const liabilityInputs = document.querySelectorAll('.liability-input');
+            
+            let totalAssets = 0;
+            let totalLiabilities = 0;
+
+            assetInputs.forEach(input => totalAssets += parseFloat(input.value) || 0);
+            liabilityInputs.forEach(input => totalLiabilities += parseFloat(input.value) || 0);
+
+            const netPosition = totalAssets - totalLiabilities;
+            
+            // Calculate Current Ratio (Assets / Liabilities)
+            let ratio = "N/A";
+            if (totalLiabilities > 0) {
+                ratio = (totalAssets / totalLiabilities).toFixed(2);
+            } else if (totalAssets > 0) {
+                ratio = "Excellent"; // If you have money but no debt!
+            }
+
+            // Update Text
+            displayAssets.innerText = formatCurrency(totalAssets);
+            displayLiabilities.innerText = formatCurrency(totalLiabilities);
+            displayNet.innerText = formatCurrency(netPosition);
+            displayRatio.innerText = ratio;
+
+            // Update Colors
+            displayNet.className = netPosition >= 0 ? 'positive-net' : 'negative-net';
+            if(ratio !== "N/A" && ratio !== "Excellent") {
+                displayRatio.style.color = parseFloat(ratio) >= 1.0 ? "var(--asset-green)" : "var(--liability-red)";
+            } else {
+                displayRatio.style.color = "var(--text-main)";
+            }
+
+            // Update Chart
+            if (totalAssets === 0 && totalLiabilities === 0) {
+                myChart.data.datasets[0].data = [1, 1]; // Reset to 50/50 greyed out ideally, but this works
+            } else {
+                myChart.data.datasets[0].data = [totalAssets, totalLiabilities];
+            }
+            myChart.update();
+
+            saveData(); // Save every time we calculate
+        };
+
+        // --- CREDIT CARD LOGIC ---
+        const addCreditCard = (savedValue = "") => {
+            ccCount++;
+            const newDiv = document.createElement('div');
+            newDiv.classList.add('input-group', 'extra-cc');
+            newDiv.innerHTML = `
+                <div class="label-container">
+                    <label>Credit Card ${ccCount}</label>
+                    <button class="icon-btn remove-btn">-</button>
+                </div>
+                <div class="input-wrapper">
+                    <span>$</span>
+                    <input type="number" class="liability-input cc-input" placeholder="0.00" min="0" value="${savedValue}">
+                </div>
+            `;
+            ccContainer.appendChild(newDiv);
+            
+            newDiv.querySelector('.liability-input').addEventListener('input', calculateTotals);
+            newDiv.querySelector('.remove-btn').addEventListener('click', () => {
+                newDiv.remove();
+                calculateTotals();
+            });
+        };
+
+        // --- LOCAL STORAGE (AUTO-SAVE) ---
+        const saveData = () => {
+            const data = {
+                cash: document.getElementById('cash-input').value,
+                checking: document.getElementById('checking-input').value,
+                savings: document.getElementById('savings-input').value,
+                bills: document.getElementById('bills-input').value,
+                creditCards: []
+            };
+            // Save all credit card inputs
+            document.querySelectorAll('.cc-input').forEach(input => {
+                data.creditCards.push(input.value);
+            });
+            localStorage.setItem('liquidityData', JSON.stringify(data));
+        };
+
+        const loadData = () => {
+            const savedData = JSON.parse(localStorage.getItem('liquidityData'));
+            if (savedData) {
+                document.getElementById('cash-input').value = savedData.cash || "";
+                document.getElementById('checking-input').value = savedData.checking || "";
+                document.getElementById('savings-input').value = savedData.savings || "";
+                document.getElementById('bills-input').value = savedData.bills || "";
+                
+                // Load Credit Cards
+                if (savedData.creditCards && savedData.creditCards.length > 0) {
+                    document.getElementById('cc-1').value = savedData.creditCards[0];
+                    // Add extra rows for remaining cards
+                    for (let i = 1; i < savedData.creditCards.length; i++) {
+                        addCreditCard(savedData.creditCards[i]);
+                    }
+                }
+            }
+        };
+
+        // --- DARK MODE LOGIC ---
+        const toggleTheme = () => {
+            const body = document.documentElement;
+            if (body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                themeBtn.innerText = '🌙';
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                themeBtn.innerText = '☀️';
+                localStorage.setItem('theme', 'dark');
+            }
+        };
+
+        // Load Theme on start
+        if (localStorage.getItem('theme') === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeBtn.innerText = '☀️';
+        }
+
+        // --- EVENT LISTENERS ---
+        addCcBtn.addEventListener('click', () => { addCreditCard(); calculateTotals(); });
+        themeBtn.addEventListener('click', toggleTheme);
+        
+        printBtn.addEventListener('click', () => window.print());
+        
+        clearBtn.addEventListener('click', () => {
+            if(confirm("Are you sure you want to clear all data?")) {
+                document.querySelectorAll('input').forEach(input => input.value = "");
+                document.querySelectorAll('.extra-cc').forEach(row => row.remove()); // Remove extra CC rows
+                ccCount = 1;
+                localStorage.removeItem('liquidityData');
+                calculateTotals();
+            }
+        });
+
+        // Add input listeners to default boxes
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('input', calculateTotals);
+        });
+
+        // --- INITIALIZATION ---
+        initChart();
+        loadData();
+        calculateTotals();
+
+    </script>
+</body>
+</html>
