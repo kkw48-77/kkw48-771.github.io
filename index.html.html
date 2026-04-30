@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Liquidity Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --asset-green: #2ecc71;
+            --liability-red: #e74c3c;
+            --text-main: #2c3e50;
+            --border-color: #dcdde1;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .calculator-container {
+            background-color: var(--card-bg);
+            width: 100%;
+            max-width: 500px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            color: var(--text-main);
+        }
+
+        .header p {
+            font-size: 0.95rem;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .asset-title { color: var(--asset-green); border-color: var(--asset-green); }
+        .liability-title { color: var(--liability-red); border-color: var(--liability-red); }
+
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .input-wrapper {
+            position: relative;
+            width: 160px;
+        }
+
+        .input-wrapper span {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7f8c8d;
+            font-weight: 600;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 10px 10px 10px 28px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .input-wrapper input:focus {
+            border-color: var(--text-main);
+        }
+
+        .totals-box {
+            background-color: var(--bg-color);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 35px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        .net-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid var(--border-color);
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .positive-net { color: var(--asset-green); }
+        .negative-net { color: var(--liability-red); }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        <div class="header">
+            <h1>Personal Liquidity Calculator</h1>
+            <p>Calculate your Net Working Capital instantly.</p>
+        </div>
+
+        <h2 class="section-title asset-title">Current Assets</h2>
+        <div class="input-group">
+            <label>Physical Cash</label>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" class="asset-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Checking Account</label>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" class="asset-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Savings Account</label>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" class="asset-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+
+        <h2 class="section-title liability-title" style="margin-top: 30px;">Current Liabilities</h2>
+        <div class="input-group">
+            <label>Credit Card Balances</label>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" class="liability-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Short-Term Bills Due</label>
+            <div class="input-wrapper">
+                <span>$</span>
+                <input type="number" class="liability-input" placeholder="0.00" min="0">
+            </div>
+        </div>
+
+        <div class="totals-box">
+            <div class="total-row">
+                <span>Total Assets:</span>
+                <span id="display-assets">$0.00</span>
+            </div>
+            <div class="total-row">
+                <span>Total Liabilities:</span>
+                <span id="display-liabilities">$0.00</span>
+            </div>
+            <div class="net-row">
+                <span>Net Liquid Assets:</span>
+                <span id="display-net" class="positive-net">$0.00</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. Grab all the input fields and display text areas from the HTML
+        const assetInputs = document.querySelectorAll('.asset-input');
+        const liabilityInputs = document.querySelectorAll('.liability-input');
+        
+        const displayAssets = document.getElementById('display-assets');
+        const displayLiabilities = document.getElementById('display-liabilities');
+        const displayNet = document.getElementById('display-net');
+
+        // 2. Formatting tool to make numbers look like money (e.g., $1,000.00)
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+        };
+
+        // 3. The Main Math Function
+        const calculateTotals = () => {
+            let totalAssets = 0;
+            let totalLiabilities = 0;
+
+            // Add up all the asset boxes
+            assetInputs.forEach(input => {
+                const value = parseFloat(input.value) || 0; // If empty, treat as 0
+                totalAssets += value;
+            });
+
+            // Add up all the liability boxes
+            liabilityInputs.forEach(input => {
+                const value = parseFloat(input.value) || 0; // If empty, treat as 0
+                totalLiabilities += value;
+            });
+
+            // The core accounting equation
+            const netPosition = totalAssets - totalLiabilities;
+
+            // 4. Update the text on the screen
+            displayAssets.innerText = formatCurrency(totalAssets);
+            displayLiabilities.innerText = formatCurrency(totalLiabilities);
+            displayNet.innerText = formatCurrency(netPosition);
+
+            // 5. Color coding: Green if positive/zero, Red if negative
+            if (netPosition >= 0) {
+                displayNet.className = 'positive-net';
+            } else {
+                displayNet.className = 'negative-net';
+            }
+        };
+
+        // 6. The "Listeners" - these trigger the math function every time you type a number
+        assetInputs.forEach(input => input.addEventListener('input', calculateTotals));
+        liabilityInputs.forEach(input => input.addEventListener('input', calculateTotals));
+
+    </script>
+</body>
+</html>
