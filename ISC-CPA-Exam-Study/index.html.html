@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISC CPA Exam Prep</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <main id="app-container">
+
+        <section id="dashboard-view" class="view active">
+            <header class="top-bar">
+                <div class="stat-badge streak-badge">
+                    <span class="icon">🔥</span>
+                    <span id="streak-display">0</span>
+                </div>
+                <div class="stat-badge xp-badge">
+                    <span class="icon">⭐</span>
+                    <span id="xp-display">0 XP</span>
+                </div>
+            </header>
+
+            <div class="profile-section">
+                <h2 id="rank-display">Intern</h2>
+                <p>ISC Audit & Controls Track</p>
+            </div>
+
+            <div class="action-section">
+                <button id="start-btn" class="btn primary-btn">Start Daily Quiz</button>
+            </div>
+        </section>
+
+        <section id="quiz-view" class="view hidden">
+            <header class="quiz-header">
+                <button id="quit-btn" class="icon-btn">✖</button>
+                <div class="progress-bar-container">
+                    <div id="progress-bar-fill" class="progress-fill"></div>
+                </div>
+            </header>
+
+            <div class="question-container">
+                <div class="metadata-tags">
+                    <span id="difficulty-tag" class="tag">Medium</span>
+                    <span id="blueprint-tag" class="tag">SOC Engagements</span>
+                </div>
+                <h2 id="question-text">Loading question...</h2>
+            </div>
+
+            <div id="options-container" class="options-container">
+                </div>
+
+            <div id="feedback-container" class="feedback-container hidden">
+                <div id="feedback-content">
+                    <h3 id="feedback-title">Correct!</h3>
+                    <p id="feedback-explanation">Explanation will go here.</p>
+                </div>
+                <button id="next-btn" class="btn continue-btn">Continue</button>
+            </div>
+        </section>
+
+        <section id="results-view" class="view hidden">
+            <div class="results-header">
+                <h2>Quiz Complete!</h2>
+                <p>Great job investing in your CPA journey today.</p>
+            </div>
+
+            <div class="results-stats">
+                <div class="result-card">
+                    <h3>Score</h3>
+                    <p id="final-score">4/5</p>
+                </div>
+                <div class="result-card">
+                    <h3>XP Earned</h3>
+                    <p id="earned-xp" class="xp-text">+40 XP</p>
+                </div>
+            </div>
+
+            <div class="action-section">
+                <button id="home-btn" class="btn primary-btn">Return to Dashboard</button>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
